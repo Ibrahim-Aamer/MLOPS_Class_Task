@@ -1,0 +1,33 @@
+name: Build on push and pull request
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Build
+        run: |
+          if [ ${{ github.event_name }} = 'pull_request' ]; then
+            git fetch origin ${{ github.event.pull_request.head.ref }}:$GITHUB_REF
+            git checkout $GITHUB_REF
+          fi
+          # Run your build command here
+            run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - name: Submit pull request build
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/create-pull-request@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Build succeeded"
+          title: "Build succeeded"
+          body: "Your build succeeded. :tada:"
+          branch: main
